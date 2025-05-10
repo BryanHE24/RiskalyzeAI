@@ -1,0 +1,39 @@
+/* File path: frontend/assets/styles.css */
+/* Dark theme */
+:root {
+    --primary: #2563eb;
+    --background: #0f172a;
+    --secondary: #1e293b;
+    --text: #f8fafc;
+}
+
+.stApp {
+    background-color: var(--background);
+    color: var(--text);
+}
+
+.stSidebar {
+    background-color: var(--secondary) !important;
+}
+
+.stButton>button {
+    background-color: var(--primary);
+    color: white;
+    border-radius: 8px;
+}
+
+.stTextInput>div>div>input {
+    background-color: var(--secondary);
+    color: var(--text);
+}
+
+/* Chat bubbles */
+[data-testid="stChatMessage"] {
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+}
+
+[data-testid="stChatMessage"] p {
+    margin: 0;
+}
