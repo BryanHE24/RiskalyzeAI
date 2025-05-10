@@ -37,34 +37,7 @@
 *   **Environment Management:** python-dotenv
 
 ## Project Structure
-RiskalyzeAI/
-├── .streamlit/
-│ └── config.toml # Streamlit theme configuration
-├── backend/
-│ ├── db.py # Database connection and CRUD operations
-│ ├── ingestion.py # Document processing and ticket creation
-│ └── openai_agent.py # OpenAI API interaction (categorization, summary, resolution)
-├── data_processing/
-│ └── document_loader.py # Utilities for loading text from various file types
-├── database/
-│ └── sample_data/
-│ ├── schema.sql # SQL schema for the tickets table
-│ └── ticket_*.{txt,pdf,docx} # (Generated) Sample ticket files
-├── frontend/
-│ ├── assets/
-│ │ └── styles.css # Custom CSS for Streamlit app
-│ ├── pages/
-│ │ ├── 📊_Analytics_Dashboard.py # Streamlit page for analytics
-│ │ └── 🎟️_Chat_Assistant.py # Streamlit page for chat interaction
-│ └── main.py # Main Streamlit application entry point
-├── scripts/
-│ ├── create_sample_data.py # Script to generate sample ticket files
-│ └── run_categorization.py # Script to run batch categorization on pending tickets
-├── .env # Environment variables (API keys, DB URL) - KEEP THIS SECRET
-├── .gitignore # Specifies intentionally untracked files
-├── README.md # This file
-├── requirements.txt # Python dependencies
-└── run_ingestion.py # Script to generate sample data and ingest it
+![Project structure img](image.png)
 
 
 ## Setup and Installation
@@ -79,7 +52,7 @@ RiskalyzeAI/
 
 1.  **Clone the Repository:**
     ```bash
-    git clone https://github.com/your-username/RiskalyzeAI.git
+    git clone https://github.com/BryanHE24/RiskalyzeAI
     cd RiskalyzeAI
     ```
 
@@ -98,8 +71,7 @@ RiskalyzeAI/
     ```
 
 4.  **Set Up Environment Variables:**
-    *   Rename `.env.example` to `.env` (if you provide an example file) or create a `.env` file.
-    *   Update the `.env` file with your credentials:
+    *   Create the `.env` file with your credentials:
         ```env
         OPENAI_API_KEY="sk-your_openai_api_key"
         DATABASE_URL="mysql+pymysql://user:password@host:port/database_name"
@@ -150,3 +122,8 @@ RiskalyzeAI/
 *   Ability to manually edit ticket details and categories via the UI.
 *   Automated report generation.
 *   Fine-tuning models for domain-specific language.
+
+
+## Images
+
+
