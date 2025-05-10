@@ -1,0 +1,8 @@
+# .streamlit/config.toml
+
+[theme]
+primaryColor="#2563eb"          # Your --primary CSS variable
+backgroundColor="#0f172a"        # Your --background CSS variable
+secondaryBackgroundColor="#1e293b" # Your --secondary CSS variable
+textColor="#f8fafc"              # Your --text CSS variable
+font="sans serif"                # Or "serif" or "monospace"
