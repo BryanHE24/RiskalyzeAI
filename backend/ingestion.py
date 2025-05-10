@@ -2,12 +2,19 @@
 import os
 import traceback  # Added for detailed error reporting
 from pathlib import Path
-from time import sleep
-from openai import OpenAI # Keep this if you plan to use OpenAI later, otherwise remove
+from time import sleep # Keep if you might add delays later, otherwise optional
+# from openai import OpenAI # Keep this if you plan to use OpenAI later, otherwise remove (Currently not used in this file)
 from dotenv import load_dotenv
-from data_processing.document_loader import load_pdf, load_txt, load_docx # Corrected import path assuming document_loader.py is in data_processing
-from backend.db import engine, insert_ticket
+from data_processing.document_loader import load_pdf, load_txt, load_docx
+from backend.db import insert_ticket # Removed 'engine' import as it's not directly used here
 from sqlalchemy.exc import SQLAlchemyError # To catch database errors specifically
+import logging # Import logging
+
+
+logger = logging.getLogger(__name__)
+if not logger.hasHandlers(): # Avoid adding multiple handlers if already configured
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - INGESTION - %(message)s')
+
 
 load_dotenv()
 # client = OpenAI() # Keep this if needed for future OpenAI agent integration
@@ -28,18 +35,15 @@ def process_file(filepath):
         elif ext == '.docx':
             return load_docx(filepath)
         else:
-            # Optional: Handle unexpected but allowed file types if necessary
-            print(f"Skipping unsupported file type: {filepath.name}")
+            logger.warning(f"Skipping unsupported file type: {filepath.name}")
             return None
     except Exception as e:
-        # Enhanced error logging
-        print(f"\n--- ERROR PROCESSING FILE: {filepath.name} ---")
-        print(f"Error type: {type(e).__name__}")
-        print(f"Error message: {e}")
-        print("Traceback:")
-        traceback.print_exc()  # Print the full stack trace
-        print("---------------------------------------------\n")
-        return None # Return None on failure so the main loop can continue
+        logger.error(f"--- ERROR PROCESSING FILE: {filepath.name} ---")
+        logger.error(f"Error type: {type(e).__name__}")
+        logger.error(f"Error message: {e}")
+        logger.error("Traceback:", exc_info=True)  # Log the full stack trace
+        logger.error("---------------------------------------------")
+        return None
 
 def ingest_documents(directory):
     """
@@ -49,10 +53,9 @@ def ingest_documents(directory):
     """
     source_path = Path(directory)
     if not source_path.is_dir():
-        print(f"Error: Directory not found: {directory}")
+        logger.error(f"Error: Directory not found: {directory}")
         return
 
-    # Ensure we only process files with the expected extensions
     files_to_process = [f for f in source_path.iterdir()
                         if f.is_file() and f.suffix.lower() in ('.pdf', '.txt', '.docx')]
 
@@ -61,51 +64,51 @@ def ingest_documents(directory):
     failure_count = 0
 
     if total_files == 0:
-        print(f"No supported files (.pdf, .txt, .docx) found in '{directory}'.")
+        logger.info(f"No supported files (.pdf, .txt, .docx) found in '{directory}'.")
         return
 
-    print(f"Found {total_files} files to process in '{directory}'. Starting ingestion...")
+    logger.info(f"Found {total_files} files to process in '{directory}'. Starting ingestion...")
 
     for i, filepath in enumerate(files_to_process):
-        print(f"Processing file {i + 1}/{total_files}: {filepath.name}...")
+        logger.info(f"Processing file {i + 1}/{total_files}: {filepath.name}...")
         content = process_file(filepath)
 
         if content is not None:
             try:
                 # Attempt to insert the processed content into the database
-                insert_ticket(
-                    title=filepath.stem, # Use filename without extension as title
-                    description=content[:MAX_CONTENT_LENGTH], # Truncate if necessary
-                    category="Pending", # Default category
+                # Capture the return value of insert_ticket
+                inserted_successfully = insert_ticket(
+                    title=filepath.stem,
+                    description=content[:MAX_CONTENT_LENGTH],
+                    category="Pending",
                     file_name=filepath.name,
-                    file_type=filepath.suffix[1:].lower() # Store 'pdf', 'txt', 'docx'
+                    file_type=filepath.suffix[1:].lower()
                 )
-                success_count += 1
-                print(f"  -> Successfully processed and inserted.")
-            except SQLAlchemyError as db_err:
-                # Catch potential database errors during insertion
-                print(f"  -> DB INSERTION FAILED for {filepath.name}: {db_err}")
+
+                if inserted_successfully:
+                    success_count += 1
+                    logger.info(f"  -> Successfully processed and inserted: {filepath.name}")
+                else:
+                    # insert_ticket should have logged the specific reason for failure
+                    # (e.g., DB engine not available, or SQL error during its execution)
+                    logger.error(f"  -> FAILED to insert ticket for {filepath.name}. Check previous logs for details.")
+                    failure_count += 1
+
+            except SQLAlchemyError as db_err: # Should ideally be caught within insert_ticket
+                logger.error(f"  -> DB INSERTION FAILED for {filepath.name}: {db_err}", exc_info=True)
                 failure_count += 1
-            except Exception as general_err:
-                # Catch any other unexpected errors during the insertion step
-                print(f"  -> UNEXPECTED ERROR during insertion phase for {filepath.name}: {general_err}")
-                traceback.print_exc() # Also print traceback for these errors
+            except Exception as general_err: # Catch any other unexpected errors
+                logger.error(f"  -> UNEXPECTED ERROR during insertion phase for {filepath.name}: {general_err}", exc_info=True)
                 failure_count += 1
         else:
             # process_file already printed the detailed error message
-            print(f"  -> Failed to process file content (see error message above).")
+            logger.info(f"  -> Failed to process file content for {filepath.name} (see error message above).")
             failure_count += 1
 
-        # sleep(0.1) # Usually not needed unless hitting external API rate limits or causing excessive load
+        # sleep(0.1) # Usually not needed unless hitting API rate limits
 
-    # Print the final summary
-    print("\n--- Ingestion Summary ---")
-    print(f"Total files found: {total_files}")
-    print(f"Successfully processed and inserted: {success_count}")
-    print(f"Failed to process or insert: {failure_count}")
-    print("-------------------------\n")
-
-# Example of how to potentially call this if running this file directly
-# if __name__ == "__main__":
-#    target_directory = "database/sample_data" # Or get from command line args
-#    ingest_documents(target_directory)
+    logger.info("\n--- Ingestion Summary ---")
+    logger.info(f"Total files found: {total_files}")
+    logger.info(f"Successfully processed and inserted: {success_count}")
+    logger.info(f"Failed to process or insert: {failure_count}")
+    logger.info("-------------------------\n")

@@ -1,26 +1,3 @@
-# Core
-python-dotenv==1.1.0
-pandas==2.2.3
-SQLAlchemy==2.0.40
-PyMySQL==1.1.1  # For mysql+pymysql dialect
-
-# OpenAI
-openai==1.73.0
-tenacity==9.1.2
-
-# Streamlit
-streamlit==1.44.1
-
-# Document Processing
-python-docx==1.1.2
-PyMuPDF==1.25.5 # fitz
-
-# Sample Data
-Faker==37.1.0
-
-# Plotting for dashboard
-plotly==6.0.1
-
 aiohappyeyeballs==2.6.1
 aiohttp==3.11.16
 aiosignal==1.3.2
@@ -35,12 +12,14 @@ blinker==1.9.0
 build==1.2.2.post1
 cachetools==5.5.2
 certifi==2025.1.31
+cffi==1.17.1
 charset-normalizer==3.4.1
 chroma-hnswlib==0.7.6
 chromadb==1.0.4
 click==8.1.8
 coloredlogs==15.0.1
 contourpy==1.3.1
+cryptography==44.0.3
 cycler==0.12.1
 dataclasses-json==0.6.7
 defusedxml==0.7.1
@@ -127,6 +106,7 @@ psycopg2-binary==2.9.10
 pyarrow==19.0.1
 pyasn1==0.6.1
 pyasn1_modules==0.4.2
+pycparser==2.22
 pydantic==2.11.3
 pydantic-settings==2.8.1
 pydantic_core==2.33.1
