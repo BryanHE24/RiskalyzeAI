@@ -37,7 +37,7 @@
 *   **Environment Management:** python-dotenv
 
 ## Project Structure
-![Project structure img](image.png)
+![Screenshot from 2025-05-10 13-51-47](https://github.com/user-attachments/assets/32423260-3a58-4d15-bdb7-6d0d086f604e)
 
 
 ## Setup and Installation
