@@ -1,23 +1,19 @@
 # File path: backend/ingestion.py
 import os
-import traceback  # Added for detailed error reporting
+import traceback
 from pathlib import Path
-from time import sleep # Keep if you might add delays later, otherwise optional
-# from openai import OpenAI # Keep this if you plan to use OpenAI later, otherwise remove (Currently not used in this file)
+# from time import sleep # Optional, uncomment if needed
 from dotenv import load_dotenv
 from data_processing.document_loader import load_pdf, load_txt, load_docx
-from backend.db import insert_ticket # Removed 'engine' import as it's not directly used here
-from sqlalchemy.exc import SQLAlchemyError # To catch database errors specifically
-import logging # Import logging
+from backend.db import insert_ticket
+from sqlalchemy.exc import SQLAlchemyError
+import logging
 
-
+# Get a logger instance for this module
 logger = logging.getLogger(__name__)
-if not logger.hasHandlers(): # Avoid adding multiple handlers if already configured
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - INGESTION - %(message)s')
-
 
 load_dotenv()
-# client = OpenAI() # Keep this if needed for future OpenAI agent integration
+# client = OpenAI() # Keep if needed for OpenAI agent integration
 
 MAX_CONTENT_LENGTH = 5000
 
@@ -41,7 +37,7 @@ def process_file(filepath):
         logger.error(f"--- ERROR PROCESSING FILE: {filepath.name} ---")
         logger.error(f"Error type: {type(e).__name__}")
         logger.error(f"Error message: {e}")
-        logger.error("Traceback:", exc_info=True)  # Log the full stack trace
+        logger.error("Traceback for file processing error:", exc_info=True)
         logger.error("---------------------------------------------")
         return None
 
@@ -70,13 +66,13 @@ def ingest_documents(directory):
     logger.info(f"Found {total_files} files to process in '{directory}'. Starting ingestion...")
 
     for i, filepath in enumerate(files_to_process):
+        # Log processing attempt for each file using the module's logger
         logger.info(f"Processing file {i + 1}/{total_files}: {filepath.name}...")
         content = process_file(filepath)
 
         if content is not None:
             try:
                 # Attempt to insert the processed content into the database
-                # Capture the return value of insert_ticket
                 inserted_successfully = insert_ticket(
                     title=filepath.stem,
                     description=content[:MAX_CONTENT_LENGTH],
@@ -89,26 +85,23 @@ def ingest_documents(directory):
                     success_count += 1
                     logger.info(f"  -> Successfully processed and inserted: {filepath.name}")
                 else:
-                    # insert_ticket should have logged the specific reason for failure
-                    # (e.g., DB engine not available, or SQL error during its execution)
-                    logger.error(f"  -> FAILED to insert ticket for {filepath.name}. Check previous logs for details.")
+                    logger.error(f"  -> FAILED to insert ticket for {filepath.name}. Check DB logs or previous 'engine not available' / DB error messages.")
                     failure_count += 1
 
-            except SQLAlchemyError as db_err: # Should ideally be caught within insert_ticket
-                logger.error(f"  -> DB INSERTION FAILED for {filepath.name}: {db_err}", exc_info=True)
+            except SQLAlchemyError as db_err: # This catch block might be redundant if insert_ticket handles all SQLAlc errors
+                logger.error(f"  -> DB INSERTION FAILED for {filepath.name} (SQLAlchemyError): {db_err}", exc_info=True)
                 failure_count += 1
-            except Exception as general_err: # Catch any other unexpected errors
+            except Exception as general_err:
                 logger.error(f"  -> UNEXPECTED ERROR during insertion phase for {filepath.name}: {general_err}", exc_info=True)
                 failure_count += 1
         else:
-            # process_file already printed the detailed error message
             logger.info(f"  -> Failed to process file content for {filepath.name} (see error message above).")
             failure_count += 1
 
-        # sleep(0.1) # Usually not needed unless hitting API rate limits
+        # sleep(0.1) # Optional delay
 
-    logger.info("\n--- Ingestion Summary ---")
+    logger.info("--- Ingestion Summary ---") # Add newline for readability before summary
     logger.info(f"Total files found: {total_files}")
     logger.info(f"Successfully processed and inserted: {success_count}")
     logger.info(f"Failed to process or insert: {failure_count}")
-    logger.info("-------------------------\n")
+    logger.info("-------------------------") # Add newline after summary

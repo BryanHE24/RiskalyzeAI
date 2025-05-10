@@ -30,9 +30,8 @@ Faker==37.1.0
 fastapi==0.115.9
 filelock==3.18.0
 flatbuffers==25.2.10
-fonttools==4.57.0
-fpdf==1.7.2
-fpdf2==2.8.2
+fonttools==4.58.0
+fpdf2==2.8.3
 frozenlist==1.5.0
 fsspec==2025.3.2
 gitdb==4.0.12
@@ -97,7 +96,7 @@ orjson==3.10.16
 overrides==7.7.0
 packaging==24.2
 pandas==2.2.3
-pillow==11.1.0
+pillow==11.2.1
 plotly==6.0.1
 posthog==3.24.1
 propcache==0.3.1
